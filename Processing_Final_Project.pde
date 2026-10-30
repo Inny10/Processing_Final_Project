@@ -20,8 +20,10 @@ float gravity = 0.5;     // How much gravity increases the bird's falling speed 
 
 float bgX = 0; // Stores the horizontal position (x value) of the background, which will then become a moving background as it moves to the left.
 
-// Stores the pipe's horizontal position, width, and height.
-float pipeX = 500;
+// Stores the horizontal positions of multiple pipe pairs.
+float[] pipeX = {500, 780, 1060};
+
+// Controls the size of every pipe.
 float pipeWidth = 200;
 float pipeHeight = 300;
 
@@ -118,13 +120,41 @@ void draw () {
         // Shifting the position forward lets the scrolling continue smoothly instead of leaving an empty space.
       }
 
-      // Moves the pipe to the left by decreasing its x-position by 2 pixels each frame.
-      pipeX = pipeX - 2;
 
-      // Checks if the entire pipe has moved past the left edge of the screen.
-      // If it has, the pipe's x-position is reset to 730 so it appears again from the right side.
-      if (pipeX + pipeWidth < 0) {
-        pipeX = 730;
+      for (int i = 0; i < pipeX.length; i++) {
+        // pipeX is an array containing the x-positions of all three pipe pairs.
+        // .length tells us how many positions are stored in that array.
+        // i represents which pipe pair the loop is currently working with.
+        // For example, pipeX[0] is the first pipe, pipeX[1] is the second,
+        // and pipeX[2] is the third.
+
+
+
+        /*
+       The array is: float[] pipeX = {500, 850, 1200}
+         
+         So:
+         - pipeX.length = 3
+         - pipeX[0] = 500
+         - pipeX[1] = 850
+         - pipeX[2] = 1200
+         
+         */
+
+        // Decreases the current pipe's x-position by 2 pixels.
+        // This makes the pipe move left across the screen.
+        pipeX[i] = pipeX[i] - 2;
+
+
+        // Checks if the current pipe has completely moved
+        // past the left edge of the screen.
+        if (pipeX[i] + pipeWidth < 0) {
+
+
+          // Moves the pipe back to the right side of the screen
+          // so it can appear again.
+          pipeX[i] = 730;
+        }
       }
     }
 
@@ -134,20 +164,24 @@ void draw () {
     }
 
 
-    // Draws the top pipe upside down so its wider rim faces the gap.
-    // pipeX controls its horizontal position.
-    // gapY - pipeGap / 2 finds the top edge of the gap.
-    // Subtracting pipeHeight places the pipe above the gap.
-    image(pipeTop, pipeX, gapY - pipeGap / 2 - pipeHeight, pipeWidth, pipeHeight);
+    // Repeats the drawing code for every pipe pair.
+    for (int i = 0; i < pipeX.length; i++) {
+
+      // Draws the top pipe upside down, above the gap.
+      // pipeX[i] gives the horizontal position of the current pipe.
+      // gapY - pipeGap / 2 finds the top edge of the opening.
+      // Subtracting pipeHeight places the pipe above the opening.
+      image(pipeTop, pipeX[i], gapY - pipeGap / 2 - pipeHeight, pipeWidth, pipeHeight);
+
+      // Draws the bottom pipe below the opening.
+      // gapY + pipeGap / 2 finds the bottom edge of the opening.
+      image(pipe, pipeX[i], gapY + pipeGap / 2, pipeWidth, pipeHeight);
+    }
 
 
 
-    // Draws the bottom pipe starting just below the gap.
-    // gapY is the centre of the gap.
-    // pipeGap / 2 moves the pipe down by half the gap size.
-    // pipeWidth controls the width of the pipe.
-    // pipeHeight controls the height of the pipe.
-    image(pipe, pipeX, gapY + pipeGap / 2, pipeWidth, pipeHeight);
+
+
 
 
     image(bird, 100, birdY, 50, 40);
@@ -157,19 +191,27 @@ void draw () {
      40 = the bird is 40 pixels tall.
      */
 
-    // Checks if the bird is overlapping the pipes horizontally.
-    if (100 + 50 > pipeX && 100 < pipeX + pipeWidth) {
 
-      // Checks if the bird is above the gap or below the gap.
-      // birdY is the bird's top position, and birdY + 40 is its bottom position.
-      // gapY - pipeGap / 2 is the top of the gap.
-      // gapY + pipeGap / 2 is the bottom of the gap.
-      if (birdY < gapY - pipeGap / 2 || birdY + 40 > gapY + pipeGap / 2) {
 
-        // Ends the game if the bird touches either pipe.
-        gameOver = true;
-      }
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     if (birdY + 40 >= 550) {
       birdY = 523; // Keeps the bird on top of the bottom of the screen.
@@ -194,6 +236,30 @@ void draw () {
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void mousePressed() {
   if (screen == 0) {
