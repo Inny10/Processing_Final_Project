@@ -12,26 +12,52 @@ PImage bg3;
 PImage gameOverImg; // Stores the Game Over image.
 PImage pipe;
 PImage pipeTop; // Stores the upside-down pipe image.
+PImage pauseButton;
+PImage pauseLetter;
+PImage homeButton;
+PImage restartButton;
 
 PImage bird;
-float birdY = 200;       // The bird's starting vertical position.
+float birdY = 250;       // The bird's starting vertical position.
 float birdVelocity = 0;  // The bird's starting falling speed.
 float gravity = 0.5;     // How much gravity increases the bird's falling speed each frame.
 
 float bgX = 0; // Stores the horizontal position (x value) of the background, which will then become a moving background as it moves to the left.
 
 // Stores the horizontal positions of multiple pipe pairs.
-float[] pipeX = {500, 780, 1060};
+float[] pipeX = {125, 350, 575, 800};
+
+// Tracks whether each pipe pair has already given a point.
+boolean[] pipeScored = {false, false, false, false};
+
 
 // Controls the size of every pipe.
-float pipeWidth = 200;
+float pipeWidth = 70;
 float pipeHeight = 300;
 
-float pipeGap = 70; // Sets the vertical space between the top and bottom pipes. Gives the bird 120 pixels of space to fly through.
-float gapY = 250;    // Controls where the gap is positioned vertically.
+float pipeGap = 150; // Sets the vertical space between the top and bottom pipes. Gives the bird 120 pixels of space to fly through.
+
+
+
+
+// make the gapY (gap of pipes for bird to pass through) random for each pipe as it is in an array.
+float[] gapY = {
+  random(200, 300),
+  random(200, 300),
+  random(200, 300),
+  random(200, 300)
+};
+
+// gapY[i]: uses the gap position belonging to the current pipe pair.
+
+
 
 boolean gameStarted = false; // Tracks whether the bird has started moving.
 boolean gameOver = false; // Tracks whether the game has ended.
+boolean paused = false; // Stores whether the game is currently paused.
+
+int score = 0; // Stores the player's score.
+int rectScoreBox = 80;
 
 
 void setup () {
@@ -74,6 +100,18 @@ void setup () {
   // ectedindex=3&itb=0&cw=1375&ch=659&ajaxhist=0&ajaxserp=0&pivotparams=insightsToken%3Dccid_zsqlap20*cp_3B67C5913E5474C
   // A7B8573107AFB977F*mid_57E4A8C988071099E8AA5F3B637BB2EF5E131649*thid_OIP.zsqlap20sIYcWkrnmp8QswHaHa&vt=0&sim=11&iss=V
   // SI&ajaxhist=0&ajaxserp=0    then used the background remover tool and then flipped it upside down.
+
+  pauseButton = loadImage("output-onlinepngtools.png");
+  // https://cdn.creazilla.com/icons/3263299/pause-icon-md.png
+
+  pauseLetter = loadImage("739ad4f69b21ba2d2e0dc927a31e22eb-removebg-preview.png");
+  // https://i.pinimg.com/originals/73/9a/d4/739ad4f69b21ba2d2e0dc927a31e22eb.png
+
+  homeButton = loadImage("desktop-icon-house-building-icon-design-orange-yellow-text-line-png-clipart-removebg-preview.png");
+  // https://p1.hiclipart.com/preview/685/138/489/desktop-icon-house-building-icon-design-orange-yellow-text-line-png-clipart.jpg
+
+  restartButton = loadImage("5698069-removebg-preview.png");
+  // https://cdn-icons-png.flaticon.com/256/5698/5698069.png
 }
 
 void draw () {
@@ -105,12 +143,24 @@ void draw () {
     // x3, y3: right-pointing tip
     // Increase or decrease x values to move left or right
     // Increase or decrease y values to move down or up
+
+    // MENU BUTTON
+
+    fill(#15370D);
+    rect(303, 440, 115, 55, 9);
+
+    fill(255);
+    textSize(22);
+    textAlign(CENTER, CENTER);
+    text("Menu", 360.5, 467.5);
   } else if (screen == 1) {
 
     image(bg3, bgX, 0, 730, 550); // Draws the first background at its current x-position.
     image(bg3, bgX + 730, 0, 730, 550); // Draws another copy 730 pixels to the right so it fills the empty space.
 
-    if (gameStarted && !gameOver) { // if the game has started (space bar clicked) and if the game is not over (not touching bottom of screen) do this:
+
+
+    if (gameStarted && !gameOver  && !paused) { // if the game has started (space bar clicked) and if the game is not over (not touching bottom of screen) do this:
 
       bgX = bgX - 2; // Decreases the x-position by 2 each frame to move the background left.
 
@@ -130,20 +180,34 @@ void draw () {
 
 
 
-        /*
-       The array is: float[] pipeX = {500, 850, 1200}
-         
-         So:
-         - pipeX.length = 3
-         - pipeX[0] = 500
-         - pipeX[1] = 850
-         - pipeX[2] = 1200
-         
-         */
 
         // Decreases the current pipe's x-position by 2 pixels.
         // This makes the pipe move left across the screen.
         pipeX[i] = pipeX[i] - 2;
+
+
+        // Gives one point when the bird completely passes a pipe.
+        if (pipeX[i] + pipeWidth < 20 && pipeScored[i] == false) {
+          score = score + 1;
+          pipeScored[i] = true;
+
+
+
+
+          /*
+            pipeX[i] + pipeWidth finds the pipe's right edge.
+           
+           < 20 checks whether that edge has moved past the bird's left edge (the bird starts at x = 20).
+           
+           pipeScored[i] == false checks that this pipe hasn't already awarded a point.
+           
+           score = score + 1 adds one point.
+           
+           pipeScored[i] = marks that the pipe as scored = true.
+           */
+        }
+
+
 
 
         // Checks if the current pipe has completely moved
@@ -154,67 +218,123 @@ void draw () {
           // Moves the pipe back to the right side of the screen
           // so it can appear again.
           pipeX[i] = 730;
+
+          // Allows this pipe to give another point next time.
+          pipeScored[i] = false;
         }
       }
     }
 
-    if (key == ' ') { // Press space bar to start
+    if (gameStarted == true && !gameOver && !paused) {
       birdVelocity = birdVelocity + gravity; // Increases the bird's falling speed.
       birdY = birdY + birdVelocity; // Updates the bird's vertical position.
     }
 
 
-    // Repeats the drawing code for every pipe pair.
+
+    // for loop
+    // .length counts the arrays (4) and tells the code
+
     for (int i = 0; i < pipeX.length; i++) {
 
-      // Draws the top pipe upside down, above the gap.
-      // pipeX[i] gives the horizontal position of the current pipe.
-      // gapY - pipeGap / 2 finds the top edge of the opening.
-      // Subtracting pipeHeight places the pipe above the opening.
-      image(pipeTop, pipeX[i], gapY - pipeGap / 2 - pipeHeight, pipeWidth, pipeHeight);
+      // Draws the top pipe using its own gap position.
+      image(pipeTop, pipeX[i], gapY[i] - pipeGap / 2 - pipeHeight, pipeWidth, pipeHeight);
 
-      // Draws the bottom pipe below the opening.
-      // gapY + pipeGap / 2 finds the bottom edge of the opening.
-      image(pipe, pipeX[i], gapY + pipeGap / 2, pipeWidth, pipeHeight);
+      // Draws the bottom pipe using the same gap position.
+      image(pipe, pipeX[i], gapY[i] + pipeGap / 2, pipeWidth, pipeHeight);
     }
 
 
 
+    // SCORE
+
+    fill(255);
+    rect( 10, 10, rectScoreBox, 30);  //x, y, size ( left - right then up - down)
+
+    // Sets the score text colour to white.
+    fill(0);
+
+    // Sets the size of the score text.
+    textSize(20);
+
+    textAlign(LEFT);
+
+    // Displays the player's score near the top left corner.
+    text("Score: " + score, 15, 30);
+
+    if (score == 9) {
+      rectScoreBox = 85;
+    }
+
+    if (score == 99) {
+      rectScoreBox = 90;
+    }
+
+
+    // PAUSE
+
+    fill(255);
+    rect(670, 10, 50, 40);
+
+    // Displays the pause text image inside the white rectangle.
+    image(pauseLetter, 672, 7, 46, 47);
 
 
 
-
-    image(bird, 100, birdY, 50, 40);
+    image(bird, 20, birdY, 35, 25);
     /*
-     Draws the bird at x = 100 and its changing y-position.
-     50 = the bird is 50 pixels wide.
-     40 = the bird is 40 pixels tall.
+     Draws the bird at x = 20 and its changing y-position.
+     35 = the bird's width.
+     25 = the bird's height.
+     */
+
+    // PAUSE BIG LOGO
+
+    if (paused == true) {
+      // Adds a dark transparent layer over the game.
+      // 150 = transparency level (0 is invisible, 255 is fully solid).
+      fill(0, 100);
+      rect(0, 0, 730, 550);
+
+      image(pauseButton, 240, 150, 250, 250);
+
+      // HOME BUTTON
+
+      // Displays the home button image at the bottom right of the screen.
+      // 637.5 = x-position (left side of the image).
+      // 460.5 = y-position (top of the image).
+      // 90 = width of the image.
+      // 90 = height of the image.
+      image(homeButton, 637.5, 460.5, 90, 90);
+    }
+
+    /*
+ X: (730 - 250) / 2 = 240
+     Y: (550 - 250) / 2 = 150
      */
 
 
+    // Checks every pipe pair for a collision.
+    for (int i = 0; i < pipeX.length; i++) {
+
+      // Checks if the bird's left and right edges overlap the pipe.
+      if (20 + 35 > pipeX[i] && 20 < pipeX[i] + pipeWidth) {
+
+        // Checks if the top of the bird goes above the current pipe's gap.
+        if (birdY < gapY[i] - pipeGap / 2) {
+          gameOver = true;
+        }
+
+        // Checks if the bottom of the bird goes below the current pipe's gap.
+        if (birdY + 25 > gapY[i] + pipeGap / 2) {
+          gameOver = true;
+        }
+      }
+    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    if (birdY + 40 >= 550) {
-      birdY = 523; // Keeps the bird on top of the bottom of the screen.
+    if (birdY + 25 >= 550) {
+      birdY = 525; // Keeps the bird on top of the bottom of the screen.
       birdVelocity = 0; // Stops the bird's falling speed.
       gameOver = true; // Ends the game when the bird reaches the bottom.
     }
@@ -224,6 +344,34 @@ void draw () {
     }
 
     if (gameOver) { // Checks if the game has ended.
+
+      // Adds a transparent dark layer over the background.
+      fill(0, 150); // 0 = black, 150 = transparency level.
+      rect(0, 0, 730, 550); // Covers the entire screen.
+
+      // same score code as before
+      fill(255);
+      rect( 10, 10, rectScoreBox, 30);  //x, y, size ( left - right then up - down)
+
+      // Sets the score text colour to white.
+      fill(0);
+
+      // Sets the size of the score text.
+      textSize(20);
+
+      textAlign(LEFT);
+
+      // Displays the player's score near the top left corner.
+      text("Score: " + score, 15, 30);
+
+      if (score == 9) {
+        rectScoreBox = 85;
+      }
+
+      if (score == 99) {
+        rectScoreBox = 90;
+      }
+
       image(gameOverImg, 65, 150, 600, 250); // Displays a much larger Game Over image in the centre.
       // 65 = (730 - 600) / 2, so the image is horizontally centred.
       // screen width - image width / 2.
@@ -233,32 +381,103 @@ void draw () {
 
       // 600 = image width.
       // 250 = image height.
+
+
+
+      // HOME BUTTON
+
+      // Displays the home button image at the bottom right of the screen.
+      // 637.5 = x-position (left side of the image).
+      // 460.5 = y-position (top of the image).
+      // 90 = width of the image.
+      // 90 = height of the image.
+      image(homeButton, 637.5, 460.5, 90, 90);
+
+
+      // RESTART BUTTON
+
+      // Draws a white circle the same size as the Home button.
+      // The ellipse is centred in the image.
+      // X: 641 + 38 = 679 (half of 76 added to the image X).
+      // Y: 370 + 38 = 408 (half of 76 added to the image Y).
+      // The ellipse uses a smaller, width and height than the image so the white won't show.
+      fill(255);
+      noStroke(); // Removes any outline from the white circle.
+      ellipse(679, 408, 74, 74);
+
+      // Displays the restart image over the white circle.
+      image(restartButton, 641, 370, 76, 76);
     }
+  } else if (screen == 2) {
+
+    background(255);
+
+
+    // TITLE SECTION
+
+    // Draws a dark green rounded rectangle behind the title.
+    fill(#15370D);
+    rect(0, 0, 730, 100 );
+
+    // Displays the title in the centre of the rectangle.
+    textSize(60);
+    textAlign(CENTER, CENTER);
+    fill(255);
+    text("HOW TO PLAY", 365, 50);
+
+
+    // GAME RULES SECTION
+
+    // Draws a light grey rounded rectangle behind the game rules.
+    fill(230);
+    rect(15, 115, 700, 140, 15);
+
+    // Displays the Game Rules heading.
+    fill(#15370D);
+    rect(15, 115, 700, 35, 15);
+    textSize(25);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text("GAME RULES", 365, 132.5);
+
+    // Displays the game instructions.
+    fill(0);
+    textSize(18);
+    textAlign(LEFT, CENTER);
+    text("• Don't hit the top or bottom of the screen.", 30, 170);
+    text("• Earn 1 point every time you pass a pipe.", 390, 170);
+    text("• Fly through the gaps between the pipes.", 30, 200);
+    text("• Avoid touching the pipes.", 390, 200);
+    text("• Try to beat your highest score!", 30, 230);
+
+
+
+    // CONTROLS SECTION
+
+    // Draws a light grey rounded rectangle behind the controls.
+    fill(230);
+    rect(15, 270, 350, 270, 15);
+
+    // Displays the Controls heading.
+    fill(#15370D);
+    rect(15, 270, 350, 35, 15);
+    textSize(25);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text("CONTROLS", 190, 287.5);
+
+    // Displays the keyboard controls and their functions.
+    fill(0);
+    textSize(20);
+    textAlign(LEFT, CENTER);
+
+    text("• SPACEBAR - Jump", 30, 335);
+    text("• P - Pause / Resume", 30, 390);
+    text("• HOME ICON - Return to Home Screen", 30, 445);
+
+    image(homeButton, 637.5, 460.5, 90, 90);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void mousePressed() {
@@ -267,11 +486,172 @@ void mousePressed() {
       screen = 1;
     }
   }
+
+
+  // PAUSE BUTTON
+
+  // Checks if the pause button is clicked during the game.
+
+  if (screen == 1 && mouseX > 670 && mouseX < 720 && mouseY > 10 && mouseY < 50 && !gameOver) {
+
+    // Switches between paused and unpaused.
+    if (paused == false) {
+      paused = true;
+    } else {
+      paused = false;
+    }
+
+    // Checks if Spacebar is pressed while the game is paused.
+    if (key == ' ' && paused == true) {
+      return; // Stops the rest of keyPressed() from running.
+    }
+  }
+
+
+
+
+
+  // HOME BUTTON WHEN PAUSED
+  // Checks if the Home button is clicked while the game is paused.
+
+  // The Home button image is 90x90 and starts at (637.5, 460.5).
+  // I made the clickable area smaller by using 60x60.
+  // I added 15 to the starting X and Y coordinates to move the clickable area inward by 15 pixels on each side.
+  if (screen == 1 && paused == true && mouseX > 652.5 && mouseX < 712.5 && mouseY > 475.5 && mouseY < 535.5) {
+    screen = 0; // Returns to the main menu.
+    paused = false; // Removes the paused state.
+  }
+
+
+
+
+  // MENU BUTTON
+  if (screen == 0 && mouseX > 303 && mouseX < 418 && mouseY > 440 && mouseY < 495) {
+    screen = 2;
+  }
+
+  // HOME BUTTON
+  // Checks if the game is over and the Home button is clicked.
+
+  // The Home button image is 90x90 and starts at (637.5, 460.5).
+  // I made the clickable area smaller by using 60x60.
+  // I added 15 to the starting X and Y coordinates to move the clickable area inward by 15 pixels on each side.
+  if (screen == 1 && gameOver == true && mouseX > 652.5 && mouseX < 712.5 && mouseY > 475.5 && mouseY < 535.5) {
+
+    /*
+    
+     637.5 = left edge of the button.
+     727.5 = right edge (637.5 + 90).
+     460.5 = top edge of the button.
+     550 = bottom edge (460.5 + 90).
+     
+     */
+    screen = 0; // Returns to the main menu screen.
+
+    gameOver = false;       // Removes the Game Over state.
+    gameStarted = false;    // Makes the game wait for the first spacebar press.
+    paused = false;         // Makes sure the game is not paused.
+    score = 0;              // Resets the score to zero.
+    rectScoreBox = 80;      // Resets the score box width.
+    birdY = 250;            // Returns the bird to its starting vertical position.
+    birdVelocity = 0;       // Stops the bird's previous movement.
+    bgX = 0;                // Resets the scrolling background.
+
+    // Returns all four pipes to their original horizontal positions.
+    pipeX[0] = 125;
+    pipeX[1] = 350;
+    pipeX[2] = 575;
+    pipeX[3] = 800;
+
+    // Allows all four pipes to award points again.
+    pipeScored[0] = false;
+    pipeScored[1] = false;
+    pipeScored[2] = false;
+    pipeScored[3] = false;
+
+    // Randomizes the pipe gaps again
+
+    // Gives each pipe a new vertical gap position.
+    gapY[0] = random(200, 300);
+    gapY[1] = random(200, 300);
+    gapY[2] = random(200, 300);
+    gapY[3] = random(200, 300);
+  }
+
+
+
+
+
+  // RESTART BUTTON
+  // The restart image starts at (641, 370) and is 76x76.
+
+  // X: 641 is the left edge.
+  // 641 + 76 = 717 is the right edge.
+
+  // Y: 370 is the top edge.
+  // 370 + 76 = 446 is the bottom edge.
+
+  // Checks if the restart button is clicked on the Game Over screen.
+  // Makes the entire restart image clickable.
+  if (screen == 1 && gameOver == true && mouseX > 641 && mouseX < 717 && mouseY > 370 && mouseY < 446) {
+
+    gameOver = false;       // Removes the Game Over screen.
+    gameStarted = false;    // Makes the game wait for Spacebar.
+    paused = false;         // Makes sure the game is not paused.
+    score = 0;              // Resets the score.
+    rectScoreBox = 80;      // Resets the score box width.
+    birdY = 250;            // Returns the bird to its starting position.
+    birdVelocity = 0;       // Stops the bird's previous movement.
+    bgX = 0;                // Resets the scrolling background.
+
+    // Returns all four pipes to their original positions.
+    pipeX[0] = 125;
+    pipeX[1] = 350;
+    pipeX[2] = 575;
+    pipeX[3] = 800;
+
+    // Allows all four pipes to award points again.
+    pipeScored[0] = false;
+    pipeScored[1] = false;
+    pipeScored[2] = false;
+    pipeScored[3] = false;
+
+    // Gives each pipe a new random gap position.
+    gapY[0] = random(200, 300);
+    gapY[1] = random(200, 300);
+    gapY[2] = random(200, 300);
+    gapY[3] = random(200, 300);
+  }
+
+
+
+
+
+
+
+  // The Home button image is 90x90 and starts at (637.5, 460.5).
+  // I made the clickable area smaller by using 60x60.
+  // I added 15 to the starting X and Y coordinates to move the clickable area inward by 15 pixels on each side.
+  if (screen == 2 && mouseX > 652.5 && mouseX < 712.5 && mouseY > 475.5 && mouseY < 535.5) {
+    screen = 0; // Returns to the main menu screen.
+  }
 }
 
 void keyPressed() {
-  if (key == ' ' && screen == 1 && !gameOver) { // Only allows the spacebar to work during gameplay and before the game is over.
+
+  // Checks if P is pressed during the game.
+  if ((key == 'p' || key == 'P') && screen == 1 && !gameOver) {
+
+    // Switches between paused and unpaused.
+    if (paused == false) {
+      paused = true;
+    } else {
+      paused = false;
+    }
+  }
+
+  if (key == ' ' && screen == 1 && !gameOver && !paused) { // Only allows the spacebar to work during gameplay and before the game is over and when the game is not paused.
     gameStarted = true; // Allows the game and background to start moving.
-    birdVelocity = -9;  // Gives the bird an upward speed, making it jump.
+    birdVelocity = -8;  // Gives the bird an upward speed, making it jump.
   }
 }
