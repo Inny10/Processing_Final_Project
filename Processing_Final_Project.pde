@@ -1,8 +1,8 @@
 /*
-Inny Ogundeji
+ Inny Ogundeji
  Final Processing Project
  TO DO : Add brief description of final project here
- */
+*/
 
 int screen = 0;
 
@@ -12,10 +12,11 @@ PImage bg3;
 PImage gameOverImg; // Stores the Game Over image.
 PImage pipe;
 PImage pipeTop; // Stores the upside-down pipe image.
+PImage pauseBigLogo;
 PImage pauseButton;
-PImage pauseLetter;
 PImage homeButton;
 PImage restartButton;
+PImage menuBackground;
 
 PImage bird;
 float birdY = 250;       // The bird's starting vertical position.
@@ -101,17 +102,20 @@ void setup () {
   // A7B8573107AFB977F*mid_57E4A8C988071099E8AA5F3B637BB2EF5E131649*thid_OIP.zsqlap20sIYcWkrnmp8QswHaHa&vt=0&sim=11&iss=V
   // SI&ajaxhist=0&ajaxserp=0    then used the background remover tool and then flipped it upside down.
 
-  pauseButton = loadImage("output-onlinepngtools.png");
+  pauseBigLogo = loadImage("output-onlinepngtools.png");
   // https://cdn.creazilla.com/icons/3263299/pause-icon-md.png
 
-  pauseLetter = loadImage("739ad4f69b21ba2d2e0dc927a31e22eb-removebg-preview.png");
-  // https://i.pinimg.com/originals/73/9a/d4/739ad4f69b21ba2d2e0dc927a31e22eb.png
+  pauseButton = loadImage("pause-icon-md.png");
+  // https://cdn.creazilla.com/icons/3263299/pause-icon-md.png
 
   homeButton = loadImage("desktop-icon-house-building-icon-design-orange-yellow-text-line-png-clipart-removebg-preview.png");
   // https://p1.hiclipart.com/preview/685/138/489/desktop-icon-house-building-icon-design-orange-yellow-text-line-png-clipart.jpg
 
   restartButton = loadImage("5698069-removebg-preview.png");
   // https://cdn-icons-png.flaticon.com/256/5698/5698069.png
+
+  menuBackground = loadImage("menu_background.jpg");
+  //https://wallpaperaccess.com/full/5677424.jpg
 }
 
 void draw () {
@@ -277,7 +281,7 @@ void draw () {
     rect(670, 10, 50, 40);
 
     // Displays the pause text image inside the white rectangle.
-    image(pauseLetter, 672, 7, 46, 47);
+    image(pauseButton, 676, 14, 38, 33);
 
 
 
@@ -296,7 +300,7 @@ void draw () {
       fill(0, 100);
       rect(0, 0, 730, 550);
 
-      image(pauseButton, 240, 150, 250, 250);
+      image(pauseBigLogo, 240, 150, 250, 250);
 
       // HOME BUTTON
 
@@ -398,19 +402,19 @@ void draw () {
 
       // Draws a white circle the same size as the Home button.
       // The ellipse is centred in the image.
-      // X: 641 + 38 = 679 (half of 76 added to the image X).
+      // X: 642 + 38 = 680 (half of 76 added to the image X).
       // Y: 370 + 38 = 408 (half of 76 added to the image Y).
-      // The ellipse uses a smaller, width and height than the image so the white won't show.
+      // The ellipse is smaller in width and height than the image so the white circle stays behind it.
       fill(255);
       noStroke(); // Removes any outline from the white circle.
-      ellipse(679, 408, 74, 74);
+      ellipse(680, 408, 70, 70);
 
       // Displays the restart image over the white circle.
-      image(restartButton, 641, 370, 76, 76);
+      image(restartButton, 642, 370, 76, 76);
     }
   } else if (screen == 2) {
 
-    background(255);
+    image(menuBackground, 0, 0, 730, 550);
 
 
     // TITLE SECTION
@@ -488,11 +492,18 @@ void mousePressed() {
   }
 
 
-  // PAUSE BUTTON
 
-  // Checks if the pause button is clicked during the game.
+  /// PAUSE BUTTON
 
-  if (screen == 1 && mouseX > 670 && mouseX < 720 && mouseY > 10 && mouseY < 50 && !gameOver) {
+  // Checks if the mouse clicks inside the white rectangle.
+  // 670 = left edge of the rectangle.
+  // 720 = right edge (670 + 50).
+  // 10 = top edge of the rectangle.
+  // 50 = bottom edge (10 + 40).
+  // >= and <= make all four edges and corners clickable.
+  // The button only works after the game starts and before Game Over.
+
+  if (screen == 1 && gameStarted == true && mouseX >= 670 && mouseX <= 720 && mouseY >= 10 && mouseY <= 50 && !gameOver) {
 
     // Switches between paused and unpaused.
     if (paused == false) {
@@ -509,19 +520,41 @@ void mousePressed() {
 
 
 
+  // HOME BUTTON (PAUSED SCREEN)
 
+  // 682.5 is the centre X: 637.5 + 90 / 2.
+  // 505.5 is the centre Y: 460.5 + 90 / 2.
+  // 36 is the clickable radius, reduced from 45 to make the hitbox tighter.
+  // dist() checks the distance between the centre and the mouse.
+  if (screen == 1 && paused == true && dist(682.5, 505.5, mouseX, mouseY) < 36) {
+    screen = 0;
+    paused = false;
+    gameOver = false;
+    gameStarted = false;
+    score = 0;
+    rectScoreBox = 80;
+    birdY = 250;
+    birdVelocity = 0;
+    bgX = 0;
 
-  // HOME BUTTON WHEN PAUSED
-  // Checks if the Home button is clicked while the game is paused.
+    // Resets all four pipes to their starting positions.
+    pipeX[0] = 125;
+    pipeX[1] = 350;
+    pipeX[2] = 575;
+    pipeX[3] = 800;
 
-  // The Home button image is 90x90 and starts at (637.5, 460.5).
-  // I made the clickable area smaller by using 60x60.
-  // I added 15 to the starting X and Y coordinates to move the clickable area inward by 15 pixels on each side.
-  if (screen == 1 && paused == true && mouseX > 652.5 && mouseX < 712.5 && mouseY > 475.5 && mouseY < 535.5) {
-    screen = 0; // Returns to the main menu.
-    paused = false; // Removes the paused state.
+    // Allows the pipes to give points again.
+    pipeScored[0] = false;
+    pipeScored[1] = false;
+    pipeScored[2] = false;
+    pipeScored[3] = false;
+
+    // Gives each pipe a new random gap height.
+    gapY[0] = random(200, 300);
+    gapY[1] = random(200, 300);
+    gapY[2] = random(200, 300);
+    gapY[3] = random(200, 300);
   }
-
 
 
 
@@ -530,13 +563,17 @@ void mousePressed() {
     screen = 2;
   }
 
-  // HOME BUTTON
-  // Checks if the game is over and the Home button is clicked.
 
-  // The Home button image is 90x90 and starts at (637.5, 460.5).
-  // I made the clickable area smaller by using 60x60.
-  // I added 15 to the starting X and Y coordinates to move the clickable area inward by 15 pixels on each side.
-  if (screen == 1 && gameOver == true && mouseX > 652.5 && mouseX < 712.5 && mouseY > 475.5 && mouseY < 535.5) {
+
+  // HOME BUTTON (GAME OVER SCREEN)
+
+  // 682.5 is the centre X: 637.5 + 90 / 2.
+  // 505.5 is the centre Y: 460.5 + 90 / 2.
+  // 36 is the clickable radius, slightly smaller than the
+  // 38-pixel radius used for the paused Home button.
+  // This makes the clickable area tighter and more accurate.
+  // dist() checks the distance between the mouse and the centre.
+  if (screen == 1 && gameOver == true && dist(682.5, 505.5, mouseX, mouseY) < 36) {
 
     /*
     
@@ -579,21 +616,14 @@ void mousePressed() {
   }
 
 
-
-
-
   // RESTART BUTTON
-  // The restart image starts at (641, 370) and is 76x76.
 
-  // X: 641 is the left edge.
-  // 641 + 76 = 717 is the right edge.
-
-  // Y: 370 is the top edge.
-  // 370 + 76 = 446 is the bottom edge.
-
-  // Checks if the restart button is clicked on the Game Over screen.
-  // Makes the entire restart image clickable.
-  if (screen == 1 && gameOver == true && mouseX > 641 && mouseX < 717 && mouseY > 370 && mouseY < 446) {
+  // Checks if the mouse is inside the circular restart button.
+  // 680 is the centre X: 642 + 76 / 2.
+  // 408 is the centre Y: 370 + 76 / 2.
+  // 38 is the radius: half of the button's 76-pixel width.
+  // dist() checks the distance between the mouse and the button's centre.
+  if (screen == 1 && gameOver == true && dist(680, 408, mouseX, mouseY) < 38) {
 
     gameOver = false;       // Removes the Game Over screen.
     gameStarted = false;    // Makes the game wait for Spacebar.
@@ -624,15 +654,14 @@ void mousePressed() {
   }
 
 
+  // HOME BUTTON (HOW TO PLAY SCREEN)
 
-
-
-
-
-  // The Home button image is 90x90 and starts at (637.5, 460.5).
-  // I made the clickable area smaller by using 60x60.
-  // I added 15 to the starting X and Y coordinates to move the clickable area inward by 15 pixels on each side.
-  if (screen == 2 && mouseX > 652.5 && mouseX < 712.5 && mouseY > 475.5 && mouseY < 535.5) {
+  // 682.5 is the centre X: 637.5 + 90 / 2.
+  // 505.5 is the centre Y: 460.5 + 90 / 2.
+  // 36 is the clickable radius, making the hitbox smaller
+  // than the full 45-pixel radius of the 90-pixel button.
+  // dist() checks the distance between the centre and the mouse.
+  if (screen == 2 && dist(682.5, 505.5, mouseX, mouseY) < 36) {
     screen = 0; // Returns to the main menu screen.
   }
 }
