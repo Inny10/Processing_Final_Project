@@ -2,7 +2,12 @@
  Inny Ogundeji
  Final Processing Project
  TO DO : Add brief description of final project here
-*/
+ */
+
+
+import processing.sound.*;
+
+
 
 int screen = 0;
 
@@ -19,6 +24,17 @@ PImage restartButton;
 PImage menuBackground;
 
 PImage bird;
+
+SoundFile backgroundMusic; // Stores the background music.
+float musicVolume = 100; // Stores the music volume from 0 to 100.
+
+boolean draggingVolume = false; // Checks if the volume slider is being dragged.
+
+SoundFile jumpSound; // Stores the sound effect that plays when the bird jumps.
+boolean jumpSoundOn = true; // Stores whether the jumping sound effect is ON or OFF.
+
+
+
 float birdY = 250;       // The bird's starting vertical position.
 float birdVelocity = 0;  // The bird's starting falling speed.
 float gravity = 0.5;     // How much gravity increases the bird's falling speed each frame.
@@ -116,9 +132,45 @@ void setup () {
 
   menuBackground = loadImage("menu_background.jpg");
   //https://wallpaperaccess.com/full/5677424.jpg
+
+
+  backgroundMusic = new SoundFile(this, "flappybird-kinguderzo.mp3");
+  // https://www.youtube.com/watch?v=wqULOC8X9Qo&list=RDwqULOC8X9Qo&start_radio=1
+
+  // Sets the starting music volume.
+  backgroundMusic.amp(musicVolume / 100.0);
+  // .amp() controls the music's amplitude (volume).
+  // .amp() uses values from 0.0 to 1.0, instead of 0 to 100.
+  // I divided musicVolume by 100.00
+
+
+  // Loads the sound effect that plays when the bird jumps.
+  jumpSound = new SoundFile(this, "Flappy bird beep sound effect.mp3");
+  // https://www.youtube.com/watch?v=VIoEq-lU02s
 }
 
 void draw () {
+
+  // Plays background music on the Home and How to Play screens.
+  if (screen == 0 || screen == 2) {
+
+    // Starts the music if it is not already playing.
+    if (!backgroundMusic.isPlaying()) {
+      backgroundMusic.loop();
+    }
+
+    // Keeps the music at the volume chosen by the slider.
+    // Continuously applies the saved slider volume to the music, even when the music is already playing.
+    backgroundMusic.amp(musicVolume / 100.0);
+  }
+
+
+  // Stops background music when entering the game.
+  if (screen == 1 && backgroundMusic.isPlaying()) {
+    backgroundMusic.stop();
+  }
+
+
   if (screen == 0) {
     image(bg1, 0, 0, 800, 600); // bigegr than the size because i do not want all the image to show.
     image(bg2, 90, 30, 550, 175);
@@ -479,6 +531,124 @@ void draw () {
     text("• P - Pause / Resume", 30, 390);
     text("• HOME ICON - Return to Home Screen", 30, 445);
 
+    // MUSIC BOX
+
+    // Draws a light grey rounded rectangle behind the music controls.
+    fill(230);
+    rect(380, 270, 335, 270, 15);
+
+    // Draws the dark green heading rectangle.
+    fill(#15370D);
+    rect(380, 270, 335, 35, 15);
+
+    // Displays the MUSIC heading.
+    textSize(25);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text("MUSIC", 547.5, 287.5);
+
+
+
+    // MUSIC VOLUME SLIDER
+
+    // Sets the slider line to a lighter shade of green.
+    stroke(#A8C99D);
+
+    // Makes the lighter green slider line 1.5 times thicker.
+    strokeWeight(24);
+
+    // Draws the actual slider track.
+    // 430, 331 = starting point at the top.
+    // 430, 511 = ending point at the bottom.
+    // Both X-coordinates are 430, so the line is vertical.
+    line(430, 331, 430, 511);
+
+
+    // Converts the music volume (0-100) into a Y-coordinate.
+    // 0% places the handle at the bottom.
+    // 100% places the handle at the top.
+
+
+    // map(value, original minimum, original maximum, new minimum, new maximum)
+    float sliderY = map(musicVolume, 0, 100, 511, 331);
+
+    // Removes the circle's outline.
+    noStroke();
+
+    // Sets the slider handle to the same dark green as the heading.
+    fill(#15370D);
+
+    // Draws the circular slider handle.
+    ellipse(430, sliderY, 30, 30);
+
+    // Sets the volume number's text size to 14.
+    textSize(14);
+
+    // Sets the volume number's colour to dark green.
+    fill(#15370D);
+
+    // Displays the current volume beside the handle.
+    // int(musicVolume) converts the volume into a whole number for display.
+    // 460 is the X-coordinate of the text.
+    // sliderY + 5 positions the text slightly below the circle's centre.
+    text(int(musicVolume), 460, sliderY + 5);
+
+
+
+
+
+    // JUMP EFFECT BUTTON
+
+    // Displays the Jump Effect heading.
+    textSize(20);
+    textAlign(CENTER, CENTER);
+    fill(#15370D);
+    text("JUMP EFFECT", 583, 350);
+
+    // Draws the dark grey rounded rectangle behind the toggle.
+    fill(100);
+    rect(540, 375, 90, 50, 25);
+
+    // If the jump sound is ON, show ON and a green circle on the right.
+    if (jumpSoundOn == true) {
+
+      fill(#4CAF50);
+
+      /*
+       605 = centre X (horizontal position)
+       
+       400 = centre Y (vertical position)
+       
+       50 = width
+       
+       50 = height
+       */
+
+      ellipse(605, 400, 50, 50);
+      textSize(18);
+      fill(0); // black
+      text("ON", 605, 400); // middle of on circle
+    }
+
+    // If the jump sound is OFF, show OFF and a red circle on the left.
+    else {
+      fill(#F44336);
+      ellipse(565, 400, 50, 50);
+
+      textSize(18);
+      fill(0);
+      text("OFF", 565, 400); // middle of off circle
+    }
+
+
+
+
+
+
+
+
+
+
     image(homeButton, 637.5, 460.5, 90, 90);
   }
 }
@@ -664,6 +834,46 @@ void mousePressed() {
   if (screen == 2 && dist(682.5, 505.5, mouseX, mouseY) < 36) {
     screen = 0; // Returns to the main menu screen.
   }
+
+
+  /*
+  dist() calculates the distance between two points.
+   
+   430 is the centre X-coordinate of the slider.
+   
+   map(...) finds the current Y-coordinate of the circle.
+   
+   mouseX and mouseY are the mouse's current coordinates.
+   
+   < 25 checks whether the mouse is within 25 pixels of the circle's centre.
+   */
+  if (screen == 2 && dist(430, map(musicVolume, 0, 100, 511, 331), mouseX, mouseY) < 25) {
+
+    // Starts dragging the volume slider.
+    draggingVolume = true;
+  }
+
+
+  // Checks if the player is on the How to Play screen and clicks the button.
+
+  /*
+   Left: 540
+   
+   Right: 540 + 90 = 630
+   
+   Top: 375
+   
+   Bottom: 375 + 50 = 425
+   */
+
+
+  if (screen == 2 && mouseX >= 540 && mouseX <= 630 && mouseY >= 375 && mouseY <= 425) {
+
+    // Changes the jump sound setting to its opposite value.
+    // If it was true (ON), it becomes false (OFF).
+    // If it was false (OFF), it becomes true (ON).
+    jumpSoundOn = !jumpSoundOn;
+  }
 }
 
 void keyPressed() {
@@ -682,5 +892,52 @@ void keyPressed() {
   if (key == ' ' && screen == 1 && !gameOver && !paused) { // Only allows the spacebar to work during gameplay and before the game is over and when the game is not paused.
     gameStarted = true; // Allows the game and background to start moving.
     birdVelocity = -8;  // Gives the bird an upward speed, making it jump.
+
+    // Only plays the jumping sound if the sound setting is ON.
+    if (jumpSoundOn == true) {
+      jumpSound.play();
+    }
   }
+}
+
+
+// Runs continuously while the mouse is being dragged.
+void mouseDragged() {
+
+  // Only moves the slider if it has been clicked.
+  if (draggingVolume == true && screen == 2) {
+
+    // Stops the slider from going above its top limit.
+    if (mouseY < 331) {
+      musicVolume = 100;
+      // If the mouse goes above the slider's top, the volume stays at 100%.
+    }
+
+    // Stops the slider from going below its bottom limit.
+    else if (mouseY > 511) {
+      musicVolume = 0;
+      // If the mouse goes below the slider's bottom, the volume stays at 0%.
+    }
+
+    // The two conditions above prevent the slider from going outside its limits.
+
+
+
+    // Updates the volume based on the mouse's position.
+    else {
+      musicVolume = map(mouseY, 511, 331, 0, 100);
+    }
+
+    // This applies the new volume to the actual music.
+    backgroundMusic.amp(musicVolume / 100.0);
+  }
+}
+
+
+
+// Runs when the mouse button is released.
+void mouseReleased() {
+
+  // Stops dragging the slider.
+  draggingVolume = false;
 }
