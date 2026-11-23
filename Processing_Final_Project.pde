@@ -2,7 +2,7 @@
  Inny Ogundeji
  Final Processing Project
  
- Description: 
+ Description:
  
  A Flappy Bird-style game where the player controls a bird
  by pressing the spacebar to avoid pipes and earn points.
@@ -56,7 +56,7 @@ boolean[] pipeScored = {false, false, false, false};
 float pipeWidth = 70;
 float pipeHeight = 300;
 
-float pipeGap = 150; // Sets the vertical space between the top and bottom pipes. Gives the bird 120 pixels of space to fly through.
+float pipeGap = 150; // Sets the vertical space between the top and bottom pipes. Gives the bird 150 pixels of space to fly through.
 
 
 
@@ -232,7 +232,7 @@ void draw () {
 
 
       for (int i = 0; i < pipeX.length; i++) {
-        // pipeX is an array containing the x-positions of all three pipe pairs.
+        // pipeX is an array containing the x-positions of all four pipe pairs.
         // .length tells us how many positions are stored in that array.
         // i represents which pipe pair the loop is currently working with.
         // For example, pipeX[0] is the first pipe, pipeX[1] is the second,
@@ -305,30 +305,6 @@ void draw () {
     }
 
 
-
-    // SCORE
-
-    fill(255);
-    rect( 10, 10, rectScoreBox, 30);  //x, y, size ( left - right then up - down)
-
-    // Sets the score text colour to white.
-    fill(0);
-
-    // Sets the size of the score text.
-    textSize(20);
-
-    textAlign(LEFT);
-
-    // Displays the player's score near the top left corner.
-    text("Score: " + score, 15, 30);
-
-    if (score == 9) {
-      rectScoreBox = 85;
-    }
-
-    if (score == 99) {
-      rectScoreBox = 90;
-    }
 
 
     // PAUSE
@@ -409,28 +385,9 @@ void draw () {
       fill(0, 150); // 0 = black, 150 = transparency level.
       rect(0, 0, 730, 550); // Covers the entire screen.
 
-      // same score code as before
-      fill(255);
-      rect( 10, 10, rectScoreBox, 30);  //x, y, size ( left - right then up - down)
 
-      // Sets the score text colour to white.
-      fill(0);
 
-      // Sets the size of the score text.
-      textSize(20);
 
-      textAlign(LEFT);
-
-      // Displays the player's score near the top left corner.
-      text("Score: " + score, 15, 30);
-
-      if (score == 9) {
-        rectScoreBox = 85;
-      }
-
-      if (score == 99) {
-        rectScoreBox = 90;
-      }
 
       image(gameOverImg, 65, 150, 600, 250); // Displays a much larger Game Over image in the centre.
       // 65 = (730 - 600) / 2, so the image is horizontally centred.
@@ -468,6 +425,25 @@ void draw () {
       // Displays the restart image over the white circle.
       image(restartButton, 642, 370, 76, 76);
     }
+
+
+
+
+    // SCORE
+
+    textSize(20);
+    textAlign(LEFT);
+
+    // Calculates the box width based on the score text.
+    rectScoreBox = int(textWidth("Score: " + score)) + 15;
+
+    // Draws the white score box.
+    fill(255);
+    rect(10, 10, rectScoreBox, 30);
+
+    // Displays the score in black.
+    fill(0);
+    text("Score: " + score, 15, 30);
   } else if (screen == 2) {
 
     image(menuBackground, 0, 0, 730, 550);
@@ -684,11 +660,6 @@ void mousePressed() {
       paused = true;
     } else {
       paused = false;
-    }
-
-    // Checks if Spacebar is pressed while the game is paused.
-    if (key == ' ' && paused == true) {
-      return; // Stops the rest of keyPressed() from running.
     }
   }
 
