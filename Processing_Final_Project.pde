@@ -1,7 +1,11 @@
 /*
  Inny Ogundeji
  Final Processing Project
- TO DO : Add brief description of final project here
+ 
+ Description: 
+ 
+ A Flappy Bird-style game where the player controls a bird
+ by pressing the spacebar to avoid pipes and earn points.
  */
 
 
