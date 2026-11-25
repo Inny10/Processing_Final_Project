@@ -183,8 +183,8 @@ void draw () {
       backgroundMusic.loop();
     }
 
-    // Keeps the music at the volume chosen by the slider.
-    // Continuously applies the saved slider volume to the music, even when the music is already playing.
+    // Always applies the saved slider volume to the music, even when the music is already playing.
+    // Updates the music volume based on the slider.
     backgroundMusic.amp(musicVolume / 100.0);
   }
 
@@ -290,7 +290,7 @@ void draw () {
            
            score = score + 1 adds one point.
            
-           pipeScored[i] = marks that the pipe as scored = true.
+           pipeScored[i] = true | marks that the pipe as it as been scored on.
            */
         }
 
