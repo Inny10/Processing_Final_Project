@@ -26,6 +26,7 @@ PImage pauseButton;
 PImage homeButton;
 PImage restartButton;
 PImage menuBackground;
+PImage leaderboardButton;
 
 PImage bird;
 
@@ -80,6 +81,7 @@ boolean paused = false; // Stores whether the game is currently paused.
 int score = 0; // Stores the player's score.
 int rectScoreBox;
 
+int highScore = 0; // Stores the highest score achieved.
 
 void setup () {
   size(730, 550); // width and height
@@ -151,6 +153,24 @@ void setup () {
   // Loads the sound effect that plays when the bird jumps.
   jumpSound = new SoundFile(this, "Flappy bird beep sound effect.mp3");
   // https://www.youtube.com/watch?v=VIoEq-lU02s
+
+  leaderboardButton = loadImage("podium.png");
+  // https://www.flaticon.com/free-icon/podium_109774?
+
+  // Loads the saved high score.
+  JSONObject highScoreData = loadJSONObject("highscore.json");
+
+  // Checks if a saved high score exists.
+  if (highScoreData != null) {
+    highScore = highScoreData.getInt("score");
+  }
+  /*
+  loadJSONObject() opens the saved JSON file.
+   
+   if (highScoreData != null) checks whether the file exists and loaded successfully.
+   
+   getInt("score") gets the saved score and puts it into highScore.
+   */
 }
 
 void draw () {
@@ -182,6 +202,13 @@ void draw () {
     // 30 is the y-coordinate, placing it 30 pixels from the top.
     // 550 is the image width in pixels.
     // 175 is the image height in pixels.
+
+    // LEADERBOARD BUTTON
+    fill(255); // White background
+    rect(670, 10, 50, 40);
+
+    // Displays the leaderboard icon.
+    image(leaderboardButton, 676, 14, 40, 33);
 
 
 
@@ -385,6 +412,19 @@ void draw () {
     }
 
     if (gameOver) { // Checks if the game has ended.
+
+
+      // Checks if the current score is higher than the high score.
+      if (score > highScore) {
+        highScore = score;
+
+        // Saves the new high score.
+        JSONObject obj = new JSONObject();
+        obj.setInt("score", highScore); // Stores the high score.
+        saveJSONObject(obj, "highscore.json");  // Saves it in highscore.json
+      }
+
+
 
       // Adds a transparent dark layer over the background.
       fill(0, 150); // 0 = black, 150 = transparency level.
@@ -635,6 +675,35 @@ void draw () {
 
 
     image(homeButton, 637.5, 460.5, 90, 90);
+  } else if (screen == 3) {
+
+    // Displays the leaderboard background.
+    image(menuBackground, 0, 0, 730, 550);
+
+    // Draws the title background.
+    fill(#15370D);
+    rect(0, 0, 730, 100);
+
+    // Displays the leaderboard title.
+    fill(255);
+    textSize(55);
+    textAlign(CENTER, CENTER);
+    text("LEADERBOARD", 365, 50);
+
+    // Displays the high score.
+    fill(230);
+    rect(165, 180, 400, 200, 15);
+
+    fill(#15370D);
+    textSize(30);
+    text("HIGH SCORE", 365, 230);
+
+    fill(0);
+    textSize(55);
+    text(highScore, 365, 300);
+
+    // Displays the home button.
+    image(homeButton, 637.5, 460.5, 90, 90);
   }
 }
 
@@ -643,6 +712,15 @@ void mousePressed() {
   if (screen == 0) {
     if (mouseX > 292.5 && mouseX < 437.5 && mouseY > 320 && mouseY < 390) {
       screen = 1;
+    }
+    // LEADERBOARD BUTTON
+    if (mouseX >= 670 && mouseX <= 720 && mouseY >= 10 && mouseY <= 50) {
+      screen = 3;
+    }
+
+    // MENU BUTTON
+    if (mouseX > 303 && mouseX < 418 && mouseY > 440 && mouseY < 495) {
+      screen = 2;
     }
   }
 
@@ -707,10 +785,7 @@ void mousePressed() {
 
 
 
-  // MENU BUTTON
-  if (screen == 0 && mouseX > 303 && mouseX < 418 && mouseY > 440 && mouseY < 495) {
-    screen = 2;
-  }
+
 
 
 
@@ -837,10 +912,7 @@ void mousePressed() {
    Left: 540
    
    Right: 540 + 90 = 630
-   
-   Top: 375
-   
-   Bottom: 375 + 50 = 425
+   75 + 50 = 425
    */
 
 
@@ -850,6 +922,11 @@ void mousePressed() {
     // If it was true (ON), it becomes false (OFF).
     // If it was false (OFF), it becomes true (ON).
     jumpSoundOn = !jumpSoundOn;
+  }
+
+  // HOME BUTTON (LEADERBOARD SCREEN)
+  if (screen == 3 && dist(682.5, 505.5, mouseX, mouseY) < 36) {
+    screen = 0;
   }
 }
 
@@ -909,8 +986,6 @@ void mouseDragged() {
     backgroundMusic.amp(musicVolume / 100.0);
   }
 }
-
-
 
 // Runs when the mouse button is released.
 void mouseReleased() {
