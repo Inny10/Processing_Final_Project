@@ -78,7 +78,7 @@ boolean gameOver = false; // Tracks whether the game has ended.
 boolean paused = false; // Stores whether the game is currently paused.
 
 int score = 0; // Stores the player's score.
-int rectScoreBox = 80;
+int rectScoreBox;
 
 
 void setup () {
@@ -332,6 +332,11 @@ void draw () {
       fill(0, 100);
       rect(0, 0, 730, 550);
 
+      /*
+     X: (730 - 250) / 2 = 240
+       Y: (550 - 250) / 2 = 150
+       */
+
       image(pauseBigLogo, 240, 150, 250, 250);
 
       // HOME BUTTON
@@ -344,39 +349,39 @@ void draw () {
       image(homeButton, 637.5, 460.5, 90, 90);
     }
 
-    /*
- X: (730 - 250) / 2 = 240
-     Y: (550 - 250) / 2 = 150
-     */
 
+    // Only checks for collisions while the game is actively playing/running.
+    if (gameStarted && !gameOver && !paused) {
 
-    // Checks every pipe pair for a collision.
-    for (int i = 0; i < pipeX.length; i++) {
+      // Checks every pipe pair for a collision.
+      for (int i = 0; i < pipeX.length; i++) {
 
-      // Checks if the bird's left and right edges overlap the pipe.
-      if (20 + 35 > pipeX[i] && 20 < pipeX[i] + pipeWidth) {
+        // Checks if the bird's left and right edges overlap the pipe.
+        if (20 + 35 > pipeX[i] && 20 < pipeX[i] + pipeWidth) {
 
-        // Checks if the top of the bird goes above the current pipe's gap.
-        if (birdY < gapY[i] - pipeGap / 2) {
-          gameOver = true;
-        }
+          // Checks if the top of the bird goes above the current pipe's gap.
+          if (birdY < gapY[i] - pipeGap / 2) {
+            gameOver = true;
+          }
 
-        // Checks if the bottom of the bird goes below the current pipe's gap.
-        if (birdY + 25 > gapY[i] + pipeGap / 2) {
-          gameOver = true;
+          // Checks if the bottom of the bird goes below the current pipe's gap.
+          if (birdY + 25 > gapY[i] + pipeGap / 2) {
+            gameOver = true;
+          }
         }
       }
-    }
 
 
-    if (birdY + 25 >= 550) {
-      birdY = 525; // Keeps the bird on top of the bottom of the screen.
-      birdVelocity = 0; // Stops the bird's falling speed.
-      gameOver = true; // Ends the game when the bird reaches the bottom.
-    }
 
-    if (birdY <= 0) {
-      gameOver = true; // Ends the game if the bird reaches the top.
+      if (birdY + 25 >= 550) {
+        birdY = 525; // Keeps the bird on top of the bottom of the screen.
+        birdVelocity = 0; // Stops the bird's falling speed.
+        gameOver = true; // Ends the game when the bird reaches the bottom.
+      }
+
+      if (birdY <= 0) {
+        gameOver = true; // Ends the game if the bird reaches the top.
+      }
     }
 
     if (gameOver) { // Checks if the game has ended.
@@ -484,7 +489,7 @@ void draw () {
     text("• Earn 1 point every time you pass a pipe.", 390, 170);
     text("• Fly through the gaps between the pipes.", 30, 200);
     text("• Avoid touching the pipes.", 390, 200);
-    text("• Try to beat your highest score!", 30, 230);
+    text("• Try to get the highest score you can!", 30, 230);
 
 
 
@@ -585,7 +590,7 @@ void draw () {
     fill(#15370D);
     text("JUMP EFFECT", 583, 350);
 
-    // Draws the dark grey rounded rectangle behind the toggle.
+    // Draws the dark grey rounded rectangle behind the butto.
     fill(100);
     rect(540, 375, 90, 50, 25);
 
@@ -677,7 +682,6 @@ void mousePressed() {
     gameOver = false;
     gameStarted = false;
     score = 0;
-    rectScoreBox = 80;
     birdY = 250;
     birdVelocity = 0;
     bgX = 0;
@@ -734,7 +738,6 @@ void mousePressed() {
     gameStarted = false;    // Makes the game wait for the first spacebar press.
     paused = false;         // Makes sure the game is not paused.
     score = 0;              // Resets the score to zero.
-    rectScoreBox = 80;      // Resets the score box width.
     birdY = 250;            // Returns the bird to its starting vertical position.
     birdVelocity = 0;       // Stops the bird's previous movement.
     bgX = 0;                // Resets the scrolling background.
@@ -774,7 +777,6 @@ void mousePressed() {
     gameStarted = false;    // Makes the game wait for Spacebar.
     paused = false;         // Makes sure the game is not paused.
     score = 0;              // Resets the score.
-    rectScoreBox = 80;      // Resets the score box width.
     birdY = 250;            // Returns the bird to its starting position.
     birdVelocity = 0;       // Stops the bird's previous movement.
     bgX = 0;                // Resets the scrolling background.
@@ -854,7 +856,7 @@ void mousePressed() {
 void keyPressed() {
 
   // Checks if P is pressed during the game.
-  if ((key == 'p' || key == 'P') && screen == 1 && !gameOver) {
+  if ((key == 'p' || key == 'P') && screen == 1 && gameStarted == true && !gameOver) {
 
     // Switches between paused and unpaused.
     if (paused == false) {
